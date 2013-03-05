@@ -31,7 +31,7 @@ Server端实现平台受制于OpenCV的支持，可供选择的语言平台有Ja
 - 若选用Java平台，可以使用Struts2+Hibernate框架
 - 若选用Python平台，可以使用web.py或其他轻量级框架
 
-拟使用Python平台，因为本项目业务逻辑简单，如使用J2EE框架开发，则带来了不必要的复杂度，而且Python在图像处理方面有先天的优势，编码更加容易。
+拟使用Python平台，因为本项目业务逻辑简单，如使用J2EE框架开发，则带来了不必要的复杂度，而且Python在图像处理方面有先天的优势，编码更加容易。（***决定选用Tornado框架以提高并发性能***）
 ##目前需要解决的问题
 1. 除JS外，使用Html5还是Flash作为前端的实现技术（组员中是否有人会Flash开发，ActionScript）
 2. Server开发平台选择，Python是否有困难
