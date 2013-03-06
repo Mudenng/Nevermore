@@ -33,6 +33,6 @@ CREATE TABLE log
 	type char(10),
 	lpic text,
 	created timestamp default now(),
-	static boolean default 0,
+	static int,
 	foreign key (sid) references staff(sid)
 );
