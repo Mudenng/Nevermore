@@ -2,18 +2,32 @@ import tornado.ioloop
 import tornado.web
 import os
 import base64
+import face_detect
+import pic_pretreatment
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("main.html", title="main")
+        self.render("main.html")
 
-class UploadHandler(tornado.web.RequestHandler):
+class UpLoadHandler(tornado.web.RequestHandler):
     def post(self):
+        # get and save original picture
         data = self.get_argument("data")
         picData = base64.b64decode(data)
-        pic_file = open("pic.png", "w")
+        pic_file = open("static/original.jpg", "w")
         pic_file.write(picData)
         pic_file.close()
+        # face detection
+        region = face_detect.process("static/original.jpg", "static/detected.jpg")
+        # pretreatment
+        pic_pretreatment.process(region, "static/gray.jpg")
+        self.write("uploadok")
+
+
+class PicProcessHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("picprocess.html", original = "static/original.jpg", detected = "static/detected.jpg", gray = "static/gray.jpg")
+
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
@@ -24,8 +38,10 @@ settings = {
 
 application = tornado.web.Application([
     (r"/", MainHandler),
-    (r"/upload", UploadHandler),
-], debug=True, **settings)
+    (r"/upload", UpLoadHandler),
+    (r"/picprocess", PicProcessHandler),
+    (r"/(favicon\.ico)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
+], debug = True, **settings)
 
 if __name__ == "__main__":
     application.listen(8888)
