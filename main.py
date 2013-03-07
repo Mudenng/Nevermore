@@ -20,13 +20,23 @@ class UpLoadHandler(tornado.web.RequestHandler):
         # face detection
         region = face_detect.process("static/original.jpg", "static/detected.jpg")
         # pretreatment
-        pic_pretreatment.process(region, "static/gray.jpg")
+        pic_pretreatment.process(region, 
+                                grayfile = "static/gray.jpg", 
+                                smoothfile = "static/smooth.jpg",
+                                equfile = "static/equ.jpg",
+                                )
         self.write("uploadok")
 
 
 class PicProcessHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("picprocess.html", original = "static/original.jpg", detected = "static/detected.jpg", gray = "static/gray.jpg")
+        self.render("picprocess.html", 
+                    original = "static/original.jpg", 
+                    detected = "static/detected.jpg", 
+                    gray = "static/gray.jpg", 
+                    smooth = "static/smooth.jpg",
+                    equ = "static/equ.jpg",
+                    )
 
 
 settings = {
