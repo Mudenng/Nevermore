@@ -14,7 +14,7 @@ def detect_object(image):
         result.append((r[0][0], r[0][1], r[0][0]+r[0][2], r[0][1]+r[0][3]))
     return result
   
-def process(infile, outfile):
+def process(infile, outfile = None):
     # detect face
     image = cv.LoadImage(infile);
     if image:
@@ -26,7 +26,8 @@ def process(infile, outfile):
         box = faces[0]
         # save face region
         im = im.crop(box)
-        im.save(outfile, "JPEG", quality = 80)
+        if outfile:
+            im.save(outfile, "JPEG", quality = 80)
     else:
         print "Error: cannot detect faces on %s" % infile
     return im

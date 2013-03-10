@@ -17,7 +17,11 @@ def equalizeHist(cvGrayImage):
     return cvGrayImage
 
 
-def process(image, grayfile, smoothfile, equfile):
+def process(image, grayfile = None, smoothfile = None, equfile = None):
+    # Resize picture
+    width = 100
+    height = 100
+    image = image.resize((width, height), Image.ANTIALIAS)
     # PIL to opencv
     bgrImage = numpy.array(image)
     cvBgrImage = cv.fromarray(bgrImage)
@@ -25,7 +29,6 @@ def process(image, grayfile, smoothfile, equfile):
     cvRgbImage = cv.CreateImage(cv.GetSize(cvBgrImage),8,3)
     cv.CvtColor(cvBgrImage, cvRgbImage, cv.CV_BGR2RGB)
 
-    # Process
     # To gray
     cvGrayScale = convert_gray(cvRgbImage)
     if cvGrayScale:
@@ -49,8 +52,12 @@ def process(image, grayfile, smoothfile, equfile):
     if cvEquHist:
         if equfile:
             equ_image = Image.fromstring("L", cv.GetSize(cvEquHist), cvEquHist.tostring())
+            print equ_image
             equ_image.save(equfile, "JPEG", quality = 80)
+            # data = list(equ_image.getdata())
+            # print data
     else:
         print "Error: cannot do equlize hist"
         return
+    return cvEquHist
 
