@@ -1,3 +1,5 @@
+CREATE DATABASE nevermore CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+USE nevermore
 CREATE TABLE staff
 (
 	sid char(10) primary key, 
@@ -5,8 +7,9 @@ CREATE TABLE staff
 	age int, 
 	idnumber char(18), 
 	spic text, 
+    eigenface text,
 	created timestamp default now()
-);
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE record
 (
@@ -17,14 +20,14 @@ CREATE TABLE record
 	created timestamp 
 	default now(), 
 	foreign key (sid) references staff(sid)
-);
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE admin
 (
 	aid serial primary key, 
 	name char(20), 
 	pwd char(32)
-);
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE log
 (
@@ -35,4 +38,4 @@ CREATE TABLE log
 	created timestamp default now(),
 	static int,
 	foreign key (sid) references staff(sid)
-);
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;

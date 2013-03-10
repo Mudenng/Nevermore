@@ -21,6 +21,7 @@ def process(infile, outfile = None):
         faces = detect_object(image) 
 
     # get face region picture
+    im = None
     if faces:
         im = Image.open(infile)
         box = faces[0]
