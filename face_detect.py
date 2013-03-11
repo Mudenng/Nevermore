@@ -1,5 +1,6 @@
 from PIL import Image
 import cv 
+import numpy
   
 def detect_object(image):
     grayscale = cv.CreateImage((image.width, image.height), 8, 1)
@@ -14,16 +15,29 @@ def detect_object(image):
         result.append((r[0][0], r[0][1], r[0][0]+r[0][2], r[0][1]+r[0][3]))
     return result
   
-def process(infile, outfile = None):
+def process(imgData = None, infile = None, outfile = None):
     # detect face
-    image = cv.LoadImage(infile);
+    if infile:
+        image = cv.LoadImage(infile)
+    else:
+        imgpil = Image.open(imgData)
+        # PIL to opencv
+        bgrImage = numpy.array(imgpil)
+        cvBgrImage = cv.fromarray(bgrImage)
+        # Reverse BGR
+        cvRgbImage = cv.CreateImage(cv.GetSize(cvBgrImage),8,3)
+        cv.CvtColor(cvBgrImage, cvRgbImage, cv.CV_BGR2RGB)
+        image = cvRgbImage
     if image:
-        faces = detect_object(image) 
-
+        faces = detect_object(image)
+        
     # get face region picture
     im = None
     if faces:
-        im = Image.open(infile)
+        if infile:
+            im = Image.open(infile)
+        else:
+            im = imgpil
         box = faces[0]
         # save face region
         im = im.crop(box)

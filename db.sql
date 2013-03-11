@@ -7,7 +7,7 @@ CREATE TABLE staff
 	age int, 
 	idnumber char(18), 
 	spic text, 
-    eigenface text,
+    eigenface longtext,
 	created timestamp default now()
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -39,3 +39,10 @@ CREATE TABLE log
 	static int,
 	foreign key (sid) references staff(sid)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE settings
+(
+	sid char(20) primary key, 
+	value longtext, 
+	created timestamp default now()
+)ENGINE=InnoDB DEFAULT CHARSET=latin1;

@@ -21,8 +21,11 @@ def computePCA(faces_path):
     print "eigenvectors shape:", eigenvectors.shape
     return (mean, eigenvectors)
 
-def get_eigenface(grayface_pic_path, mean, eigenvectors):
-    image = cv.imread(grayface_pic_path, 0)
+def get_eigenface(mean, eigenvectors, cvData = None, grayface_pic_path = None):
+    if grayface_pic_path:
+        image = cv.imread(grayface_pic_path, 0)
+    else:
+        image = cvData
     image = image.reshape(100 * 100)
     transimg = numpy.array([image])
     eigenface = cv.PCAProject(transimg, mean, eigenvectors)

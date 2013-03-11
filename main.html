@@ -37,11 +37,12 @@
                 var imgData = canvas.toDataURL("image/jpg");
                 var data = imgData.substr(22);  //截取22位以后的字符串作为图像数据
                 var length = atob(data).length;// atob decodes a string of data which has been encoded using base-64 encoding
-                $.post('/upload',{ 'data' : data }, 
+                $.post('/recognise',{ 'pic' : data }, 
                         function(msg){
-                        if (msg == 'uploadok') {
+                        if (msg != 'failed') {
                             //Redirect to the index
-                            location.href = "picprocess"
+                            //location.href = "picprocess"
+                            alert(msg);
                         }
                         else {
                             console.log(msg);
