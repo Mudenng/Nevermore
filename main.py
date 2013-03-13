@@ -4,12 +4,16 @@ import os
 import StringIO
 import numpy
 import cv
+import cv2
 from PIL import Image
 import base64
+import time
 import face_detect
 import face_recognise
 import pic_pretreatment
 import dbhandler
+
+TIMEFORMAT = "%Y-%m-%d %X"
 
 class MainPage(tornado.web.RequestHandler):
     def get(self):
@@ -49,7 +53,7 @@ class RecogniseHandler(tornado.web.RequestHandler):
             # get eigenface
             eigenface = face_recognise.get_eigenface(mean_numpy, eigenvectors_numpy, cvData = cv2Data)
             # compute distance with all staffs
-            min_dis = 10000000
+            min_dis = 1000000000
             sid = ""
             sname = ""
             staffs = db.look_table("staff")
@@ -61,11 +65,14 @@ class RecogniseHandler(tornado.web.RequestHandler):
                     min_dis = dis
                     sid = staff["sid"]
                     sname = staff["name"]
-
-            self.write(sname)
+            self.write(sid + "|" + sname)
         else:
             self.write("failed")
 
+class CheckinHandler(tornado.web.RequestHandler):
+    def post(self):
+        print self.get_argument("sid"), "checked in at", time.strftime(TIMEFORMAT, time.localtime())
+        self.write("success")
 
 class AddStaffPage(tornado.web.RequestHandler):
     def get(self):
@@ -78,14 +85,14 @@ class UploadIMGHandler(tornado.web.RequestHandler):
         sid = self.get_argument("sid")
 
         picData = base64.b64decode(pic)
-        original_tmp_path = "static/original/%s_tmp.jpg" % sid
+        buf = StringIO.StringIO()
+        buf.write(picData)
+        buf.seek(0)
         face_tmp_path = "static/faces/%s_tmp.jpg" % sid
         grayface_tmp_path = "static/grayfaces/%s_tmp.jpg" % sid
-        pic_file = open(original_tmp_path, "w")
-        pic_file.write(picData)
-        pic_file.close()
+
         # face detection
-        region = face_detect.process(infile = original_tmp_path, outfile = face_tmp_path)
+        region = face_detect.process(imgData = buf, outfile = face_tmp_path)
         # pretreatment
         if region:
             pic_pretreatment.process(region, 
@@ -102,59 +109,77 @@ class AddStaffHandler(tornado.web.RequestHandler):
         age = int(self.get_argument("age"))
         id = self.get_argument("id")
         sid = self.get_argument("sid")
-        original_tmp_path = "static/original/%s_tmp.jpg" % sid
-        face_tmp_path = "static/faces/%s_tmp.jpg" % sid
         grayface_tmp_path = "static/grayfaces/%s_tmp.jpg" % sid
-        grayface_pic_path = "static/grayfaces/%s.jpg" % sid
-        
-        # PCA 
-        mean, eigenvectors = face_recognise.computePCA("static/grayfaces")  # training
-        eigenface = face_recognise.get_eigenface(mean, eigenvectors, grayface_pic_path = grayface_tmp_path) # get eigenface
-        l = ["%.8f" % number for number in eigenface[0]]
-        eigenface_string = " ".join(l)
-        
-        # write to db
+        db = dbhandler.DBHandler()
+
+        # write staff information to DB
         try:
-            db = dbhandler.DBHandler()
-            # update mean and eigenvectors
-            # mean to string
-            m = ["%.8f" % number for number in mean[0]]
-            mean_string = " ".join(m)
-            # eigenvectors to string
-            eigenvectors_string = ""
-            for vec in eigenvectors:
-                v = ["%.8f" % number for number in vec]
-                vec_string = " ".join(v)
-                eigenvectors_string += vec_string
-                eigenvectors_string += "|"
-            eigenvectors_string = eigenvectors_string[:-1]
-            # update db
-            db.update_pca(mean_string, eigenvectors_string)
-
-            # add new staff information
-            db.add_staff(sid, name, age, id, grayface_pic_path, eigenface_string)
-
-            # rename pictures
-            os.rename(original_tmp_path, "static/original/%s.jpg" % sid)
-            os.rename(face_tmp_path, "static/faces/%s.jpg" % sid)
-            os.rename(grayface_tmp_path, grayface_pic_path)
-
-            # update all other staffs' eigenface
-            staffs = db.look_table("staff")
-            for record in staffs:
-                spic = record['spic']
-                sid = record['sid']
-                eigenface = face_recognise.get_eigenface(mean, eigenvectors, grayface_pic_path = spic)
-                l = ["%.8f" % number for number in eigenface[0]]
-                eigenface_string = " ".join(l)
-                db.update_eigenface(sid, eigenface_string)
-            self.write("success")
+            db.add_staff(sid, name, age, id, eigenface = " ")
         except:
-            # delete temp pictures
-            os.remove(original_tmp_path)
-            os.remove(face_tmp_path)
-            os.remove(grayface_tmp_path)
+            print "Error: Add staff information failed. sid = %s" % sid
             self.write("failed")
+            return False
+        # write new face to DB
+        grayface = cv2.imread(grayface_tmp_path, 0)
+        grayface = grayface.reshape(100 * 100)
+        grayface_str = ""
+        for p in grayface:
+            grayface_str += str(p)
+            grayface_str += " "
+        grayface_str = grayface_str[:-1]
+        try:
+            db.store_face(sid, grayface_str)
+        except:
+            print "Error: Store image to DB failed. sid = %s" % sid
+            self.write("failed")
+            return False
+
+        # Compute PCA - Training
+        mean, eigenvectors = face_recognise.computePCA()
+
+        # Update all staffs' eigenface
+        staffs = db.look_table("staff")
+        for staff in staffs:
+            sid = staff["sid"]
+            try:
+                records = db.get_face(sid)
+            except:
+                print "Error: Get image from DB failed. sid = %s" % sid
+                self.write("failed")
+                return False
+            nm = numpy.fromstring(records[0]['img'], dtype = numpy.uint8, sep = " ")
+            nm = nm.reshape(100, -1)
+            eigenface = face_recognise.get_eigenface(mean, eigenvectors, cvData = nm)
+            l = ["%.8f" % number for number in eigenface[0]]
+            eigenface_str = " ".join(l)
+            try:
+                db.update_eigenface(sid, eigenface_str)
+            except:
+                print "Error: Write eigenface to DB failed. sid = %s" % sid
+                self.write("failed")
+                return False
+
+        # Write mean and eigenvectors to DB
+        # mean to string
+        m = ["%.8f" % number for number in mean[0]]
+        mean_str = " ".join(m)
+        # eigenvectors to string
+        eigenvectors_str = ""
+        for vec in eigenvectors:
+            v = ["%.8f" % number for number in vec]
+            vec_str = " ".join(v)
+            eigenvectors_str += vec_str
+            eigenvectors_str += "|"
+        eigenvectors_str = eigenvectors_str[:-1]
+        try:
+            db.update_pca(mean_str, eigenvectors_str)
+        except:
+            print "Error: Update mean and eigenvectors to DB failed. "
+            self.write("failed")
+            return False
+
+        os.remove(grayface_tmp_path)
+        self.write("success")
 
 
 class PicProcessHandler(tornado.web.RequestHandler):
@@ -178,6 +203,7 @@ settings = {
 application = tornado.web.Application([
     (r"/", MainPage),
     (r"/recognise", RecogniseHandler),
+    (r"/checkin", CheckinHandler),
     (r"/addstaff", AddStaffPage),
     (r"/add_new_staff", AddStaffHandler),
     (r"/upload_image", UploadIMGHandler),

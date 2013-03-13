@@ -6,7 +6,6 @@ CREATE TABLE staff
 	name char(20), 
 	age int, 
 	idnumber char(18), 
-	spic text, 
     eigenface longtext,
 	created timestamp default now()
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -46,3 +45,11 @@ CREATE TABLE settings
 	value longtext, 
 	created timestamp default now()
 )ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE images
+(
+    id int auto_increment primary key not null,
+    sid char(10),
+    img longtext,
+    foreign key (sid) references staff(sid)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;

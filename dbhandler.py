@@ -26,9 +26,9 @@ class DBHandler:
         return self.db.query("SELECT * FROM %s" % table)
         
     #Add one staff in db
-    def add_staff(self, sid, name, age, idnumber, spic, eigenface):
-        self.db.execute("INSERT INTO staff (sid, name, age, idnumber, spic, eigenface) VALUES ('%s', '%s', %d, '%s', '%s', '%s')" \
-                  % (sid, name, age, idnumber, spic, eigenface))
+    def add_staff(self, sid, name, age, idnumber, eigenface):
+        self.db.execute("INSERT INTO staff (sid, name, age, idnumber, eigenface) VALUES ('%s', '%s', %d, '%s', '%s')" \
+                  % (sid, name, age, idnumber, eigenface))
 
     #Update one staff's eigenface in db
     def update_eigenface(self, sid, eigenface):
@@ -56,3 +56,11 @@ class DBHandler:
         mean = self.db.query("SELECT value FROM settings WHERE sid = 'mean'")
         eigenvectors = self.db.query("SELECT value FROM settings WHERE sid = 'eigenvectors'")
         return (mean[0]['value'], eigenvectors[0]['value'])
+
+    # Write face image to DB
+    def store_face(self, sid, img_string):
+        self.db.execute("INSERT INTO images (sid, img) VALUES ('%s', '%s')" % (sid, img_string))
+
+    # Get face by sid
+    def get_face(self, sid):
+        return self.db.query("SELECT * FROM images WHERE sid = '%s'" % (sid))

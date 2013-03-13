@@ -2,53 +2,86 @@
     <script src="static/jquery.js" type="text/javascript"></script>
     <script src="static/adapter.js" type="text/javascript"></script>
     <head>
+        <style>
+            body{TEXT-ALIGN: center;}
+            div.transbox
+            {
+                width:130px;
+                height:180px;
+                position:absolute; 
+                top:30px;
+                left:105px;
+                float:left;
+                border:3px solid red;
+                opacity:0.6;
+                filter:alpha(opacity=60);
+            }
+            div.mainbox
+            {
+                width:350px; 
+                height:350px; 
+                border:1px solid black; 
+                position:relative; 
+                MARGIN-RIGHT: auto; 
+                MARGIN-LEFT: auto;
+            }
+        </style>
         <title>Main</title>
     </head>
 
     <body>
-        <table>
-        <tr><td><video id="video" width="320" height="240" autoplay=""></video></td></tr>
-        <tr><td><canvas id="canvas" width="320" height="240" ></canvas></td></tr>
-        <tr>
-        <td><button id="snap" style="" onclick="getPic()">拍照</button></td>
-        <td><button id="upload" style="" onclick="uploadPic()">上传</button></td>
-        </tr>
-        </table>
+        <div class="mainbox" id="maindiv">
+            <table align="center">
+            <tr align="center"><td><video id="video" width="320" height="240" autoplay=""></video></td></tr>
+            <tr><td><canvas id="canvas" width="320" height="240" style="display:none"></canvas></td></tr>
+            <tr align="center">
+            <td><button id="snap" style="height: 30; width: 130px" onclick="getPic()">Click Here</button></td>
+            </tr>
+            <tr align="center"><td><font color="blue">请将您的面部<font color="red">正对</font>并置于红色框内，并使面部轮廓尽量与红色框重合</font></td></tr>
+            </table>
 
-        <script>
-            var video_element = document.getElementById('video');
-            var constraints = {"mandatory": {}, "optional": []}; 
-            getUserMedia({'audio':false, 'video':constraints}, onUserMediaSuccess, onUserMediaError);
-            function onUserMediaSuccess(stream) {
-                attachMediaStream(video_element, stream);
-                video_element.style.opacity = 1;
-              }
-            function onUserMediaError(error) {
-                alert("Failed to get access to local media. Error code was " + error.code + ".");
-            }
-            // 捕获并显示图片
-            function getPic() {
-                var canvas = document.getElementById("canvas"); 
-                var ctx = canvas.getContext("2d"); 
-                ctx.drawImage(video_element, 0, 0, 320, 240);
-            }
-            // 转换并上传图片
-            function uploadPic() {
-                var imgData = canvas.toDataURL("image/jpg");
-                var data = imgData.substr(22);  //截取22位以后的字符串作为图像数据
-                var length = atob(data).length;// atob decodes a string of data which has been encoded using base-64 encoding
-                $.post('/recognise',{ 'pic' : data }, 
-                        function(msg){
-                        if (msg != 'failed') {
-                            //Redirect to the index
-                            //location.href = "picprocess"
-                            alert(msg);
-                        }
-                        else {
-                            console.log(msg);
-                        }
-                        });
-            }
-        </script>
+            <script>
+                var video_element = document.getElementById('video');
+                var constraints = {"mandatory": {}, "optional": []}; 
+                getUserMedia({'audio':false, 'video':constraints}, onUserMediaSuccess, onUserMediaError);
+                function onUserMediaSuccess(stream) {
+                    attachMediaStream(video_element, stream);
+                    video_element.style.opacity = 1;
+                  }
+                function onUserMediaError(error) {
+                    alert("Failed to get access to local media. Error code was " + error.code + ".");
+                }
+                // 拍照上传进行识别
+                function getPic() {
+                    var canvas = document.getElementById("canvas"); 
+                    var ctx = canvas.getContext("2d"); 
+                    ctx.drawImage(video_element, 0, 0, 320, 240);
+                    var imgData = canvas.toDataURL("image/jpg");
+                    var data = imgData.substr(22);  //截取22位以后的字符串作为图像数据
+                    var length = atob(data).length; // atob decodes a string of data which has been encoded using base-64 encoding
+                    $.post('/recognise',{ 'pic' : data }, 
+                            function(msg) {
+                                if (msg != 'failed') {
+                                    //Redirect to the index
+                                    //location.href = "picprocess"
+                                    var strs = msg.split("|");
+                                    if (confirm("sid = " + strs[0] + ", name = " + strs[1])) {
+                                        $.post('/checkin', {'sid':strs[0]},
+                                            function(msg) {
+                                                alert(msg);
+                                            }
+                                        );
+                                    }
+                                }
+                                else {
+                                    alert("无法检测出您的面部，请重试。");
+                                }
+                            }
+                        );
+                }
+            </script>
+
+            <div class="transbox" id="box"></div>
+        </div>
     </body>
 </html>
