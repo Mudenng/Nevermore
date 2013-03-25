@@ -34,6 +34,10 @@
             <table align="center">
             <tr align="center"><td><video id="video" width="320" height="240" autoplay=""></video></td></tr>
             <tr><td><canvas id="canvas" width="320" height="240" style="display:none"></canvas></td></tr>
+            <table align="center">
+            <tr align="center"><td><input type="text" name="sid" id="sid" ></td></tr>
+            <tr><td><canvas id="canvas" width="320" height="240" style="display:none"></canvas></td></tr>
+            <tr align="center">
             <tr align="center">
             <td><button id="snap" style="height: 30; width: 130px" onclick="getPic()">Click Here</button></td>
             </tr>
@@ -59,22 +63,14 @@
                     var imgData = canvas.toDataURL("image/jpg");
                     var data = imgData.substr(22);  //截取22位以后的字符串作为图像数据
                     var length = atob(data).length; // atob decodes a string of data which has been encoded using base-64 encoding
-                    $.post('/recognise',{ 'pic' : data }, 
+                    var sid = $("#sid").val();
+                    $.post('/recognise',{ 'pic':data, 'sid':sid }, 
                             function(msg) {
-                                if (msg != 'failed') {
-                                    //Redirect to the index
-                                    //location.href = "picprocess"
-                                    var strs = msg.split("|");
-                                    if (confirm("sid = " + strs[0] + ", name = " + strs[1])) {
-                                        $.post('/checkin', {'sid':strs[0]},
-                                            function(msg) {
-                                                alert(msg);
-                                            }
-                                        );
-                                    }
+                                if (msg == 'success') {
+                                    alert("success");
                                 }
                                 else {
-                                    alert("无法检测出您的面部，请重试。");
+                                    alert(msg);
                                 }
                             }
                         );

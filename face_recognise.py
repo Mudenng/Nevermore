@@ -18,7 +18,7 @@ def computePCA(faces_path = None):
                     raw_matrix = imgraw
     else:
         db = dbhandler.DBHandler()
-        records = db.look_table("images")
+        records = db.look_table("image")
         for record in records:
             imgraw = numpy.fromstring(record['img'], dtype = numpy.uint8, sep = " ")
             try:

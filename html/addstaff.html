@@ -104,7 +104,7 @@
                 $.post('/upload_image',{ 'pic':data, 'sid':ssid }, 
                         function(msg){
                         if (msg == 'success') {
-                            $("#face").html("<p><h3>Your Face:</h3>" + "<img src='static/faces/" + ssid +"_tmp.jpg'></p>" + "<hr /><p><input type='button' id='confirm' value='确认' style='height: 25px; width: 50px'/>" + "<input type='button' id='close_face' value='返回' style='height: 25px; width: 50px'/></p>");
+                            $("#face").html("<p><h3>Your Face:</h3>" + "<img src='static/records/faces/" + ssid +"_tmp.jpg'></p>" + "<hr /><p><input type='button' id='confirm' value='确认' style='height: 25px; width: 50px'/>" + "<input type='button' id='close_face' value='返回' style='height: 25px; width: 50px'/></p>");
                             // $("#face").show();
                             $(document).ready(function() { 
                                  $.blockUI({ message: $('#face'), css: { width: '180' } });

@@ -1,63 +1,76 @@
 from PIL import Image
 import cv
 import numpy
+import wavepy as wv
 
-def convert_gray(cvRgbImage):
-    # opencv to gray picture
-    grayscale = cv.CreateImage((cvRgbImage.width, cvRgbImage.height), 8, 1)
-    cv.CvtColor(cvRgbImage, grayscale, cv.CV_BGR2GRAY)
-    return grayscale
-
-def smooth(cvImage):
-    cv.Smooth(cvImage, cvImage, cv.CV_GAUSSIAN, param1 = 3, param2 = 0, param3 = 0, param4 = 0)
+def equalizeHist(cvImage):
+    cv.EqualizeHist(cvImage, cvImage)
     return cvImage
 
-def equalizeHist(cvGrayImage):
-    cv.EqualizeHist(cvGrayImage, cvGrayImage)
-    return cvGrayImage
+def powerTransform(cvImage, c, r):
+    lut = cv.CreateMat(256, 1, cv.CV_8U)
+    for i in range(256):
+        v = cv.Round(c * pow(i / 255.0, r) * 255);
+        if( v < 0 ):
+            v = 0;
+        if( v > 255 ):
+            v = 255;
+        lut[i,0] = v;
+    cv.LUT(cvImage, cvImage, lut);
+    return cvImage
 
+def DWT(pilImage, j):
+    x = numpy.asarray(pilImage)
+    nm = 'bior3.7'
+    ext = 'per'
+    [dwtop,length,flag] = wv.dwt.dwt2(x, j, nm, ext)
+    disp = wv.dwt.dispdwt(dwtop, length, j)
+    length2 = wv.dwt.out_dim(length, j)
+    l0 = length2[0]
+    l1 = length2[1]
+    disp[disp < 0.0] = 0.0
+    disp[0:l0, 0:l1] = disp[0:l0, 0:l1] * 255.0 / disp.max()
+    disp[disp > 255.0] = 255.0
+    disp2 = disp[0:l0, 0:l1]
+    pilImage = Image.fromarray(disp2)
+    return pilImage
 
-def process(image, grayfile = None, smoothfile = None, equfile = None):
+def process(image, grayfile = None, equfile = None, powfile = None, dwtfile = None):
+    # Do DWT
+    # image = DWT(image, 1)
     # Resize picture
     width = 100
     height = 100
     image = image.resize((width, height), Image.ANTIALIAS)
-    # PIL to opencv
-    bgrImage = numpy.array(image)
-    cvBgrImage = cv.fromarray(bgrImage)
-    # Reverse BGR
-    cvRgbImage = cv.CreateImage(cv.GetSize(cvBgrImage),8,3)
-    cv.CvtColor(cvBgrImage, cvRgbImage, cv.CV_BGR2RGB)
+    if dwtfile:
+        image = image.convert("L")
+        image.save(dwtfile, "JPEG", quality = 100)
 
-    # To gray
-    cvGrayScale = convert_gray(cvRgbImage)
-    if cvGrayScale:
-        if grayfile:
-            gray_image = Image.fromstring("L", cv.GetSize(cvGrayScale), cvGrayScale.tostring())
-            gray_image.save(grayfile, "JPEG", quality = 80)
-    else:
-        print "Error: cannot convert to gray image"
-        return
-    # Gaussian smooth
-    cvSmooth = smooth(cvGrayScale)
-    if cvSmooth:
-        if smoothfile:
-            smooth_image = Image.fromstring("L", cv.GetSize(cvSmooth), cvSmooth.tostring())
-            smooth_image.save(smoothfile, "JPEG", quality = 80)
-    else:
-        print "Error: cannot do gaussion smooth"
-        return
+    # PIL to opencv
+    cvImage = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 1)
+    cv.SetData(cvImage, image.tostring())
+
     # Equalize hist
-    cvEquHist = equalizeHist(cvSmooth)
+    cvEquHist = equalizeHist(cvImage)
     if cvEquHist:
         if equfile:
             equ_image = Image.fromstring("L", cv.GetSize(cvEquHist), cvEquHist.tostring())
-            print equ_image
-            equ_image.save(equfile, "JPEG", quality = 80)
+            # print equ_image
+            equ_image.save(equfile, "JPEG", quality = 100)
             # data = list(equ_image.getdata())
             # print data
     else:
         print "Error: cannot do equlize hist"
         return
-    return cvEquHist
 
+    # Power transform
+    cvPow = powerTransform(cvEquHist, 1, 0.19)
+    if cvPow:
+        if powfile:
+            pow_image = Image.fromstring("L", cv.GetSize(cvPow), cvPow.tostring())
+            pow_image.save(powfile, "JPEG", quality = 100)
+    else:
+        print "Error: cannot do power transform"
+        return
+
+    return cvPow

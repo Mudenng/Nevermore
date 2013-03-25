@@ -1,55 +1,60 @@
 CREATE DATABASE nevermore CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+
 USE nevermore
+
 CREATE TABLE staff
 (
-	sid char(10) primary key, 
+	sid char(20) primary key,
+    pwd char(32),
 	name char(20), 
 	age int, 
-	idnumber char(18), 
+	idnumber char(20),
+    department int,
+    ondutytime char(20),
+    offdutytime char(20),
     eigenface longtext,
-	created timestamp default now()
+    distance double,
+	created timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE record
 (
-	rid serial primary key, 
-	sid char(10), 
-	type char(10), 
-	rpic text, 
-	created timestamp 
-	default now(), 
-	foreign key (sid) references staff(sid)
+	rid serial primary key,
+	sid char(20),
+	rtype int,
+    rstate int,
+	rimage text,
+	rtime timestamp default now()
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE admin
 (
-	aid serial primary key, 
-	name char(20), 
-	pwd char(32)
+	aid serial primary key,
+	name char(20),
+	pwd char(32),
+    atype int
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE log
 (
 	lid serial primary key,
-	sid char(10),
-	type char(10),
-	lpic text,
-	created timestamp default now(),
-	static int,
-	foreign key (sid) references staff(sid)
+	uid char(20),
+	ltype int,
+	content text,
+	ltime timestamp default now()
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE settings
+CREATE TABLE setting
 (
-	sid char(20) primary key, 
-	value longtext, 
-	created timestamp default now()
+	skey char(20) primary key,
+	value longtext,
+	created timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE images
+CREATE TABLE image
 (
-    id int auto_increment primary key not null,
-    sid char(10),
+    id serial primary key,
+    sid char(20),
     img longtext,
-    foreign key (sid) references staff(sid)
+	created timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
