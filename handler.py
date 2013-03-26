@@ -1,3 +1,4 @@
+#coding=utf-8
 import tornado.web
 import os
 import StringIO
@@ -56,29 +57,32 @@ class RecogniseHandler(tornado.web.RequestHandler):
             # compute distance
             staff = db.get_staff(sid = sid)
             if len(staff) == 0:
-                self.write("no this staff")
+                self.write("-2")  # sid is not exist
                 return False
             eface_str = staff[0]["eigenface"]
             staff_dis = float(staff[0]["distance"])
             eface = [float(i) for i in eface_str.split(" ")]
             dis = L1(eigenface[0], eface)
+            '''
             print eigenface[0]
             print eface
             print dis
+            '''
             if dis <= staff_dis:
-                image_path = "static/records/checkin/%s_%s.jpg" % (sid, datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
+                image_path = "static/records/checkin/%s_%s.jpg" % (sid, datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
                 buf.seek(0)
                 image = Image.open(buf)
                 image.save(image_path, "JPEG", quality = 80)
                 msg = checkin.checkin(sid, image_path)
-                if msg[1] == 0:
-                    os.remove(image_path)
-                self.write(msg[0])
+                if msg[1] == -1 or msg[1] == 0:
+                    os.remove(image_path)   # check in error
+                reponse_msg = str(msg[1]) + '|' + msg[0]
+                self.write(reponse_msg)
                 print msg[0]
             else:
-                self.write("failed")
+                self.write("-1")
         else:
-            self.write("cann't get face")
+            self.write("-1")
 
 
 class UploadIMGHandler(tornado.web.RequestHandler):

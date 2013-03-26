@@ -3,10 +3,26 @@ import tornado.database
 DEFAULT_ON_DUTY_TIME = "8:30"
 DEFAULT_OFF_DUTY_TIME = "17:30"
 
+# Fix time_zone problem
+class Connection(tornado.database.Connection):
+    def __init__(self, mysql_host, mysql_database, mysql_user, mysql_password):
+        super(Connection, self).__init__(
+            host=mysql_host,
+            database=mysql_database,
+            user=mysql_user,
+            password=mysql_password
+        )
+        self._db_args["init_command"] = 'SET time_zone = "+8:00"'
+        try:
+            self.reconnect()
+        except Exception:
+            logging.error("Cannot connect to MySQL on %s", self.host,
+                          exc_info=True)
+
 class DBHandler:
     #Init the connection
     def __init__(self):
-        self.db = tornado.database.Connection("localhost", "nevermore", "root")
+        self.db = Connection("localhost", "nevermore", "root", "")
     
     #Login check 
     def login(self, name, pwd):
@@ -74,3 +90,8 @@ class DBHandler:
     # Add checkin record in db
     def add_checkin_record(self, sid, rtype, rstate, rimage):
         self.db.execute("INSERT INTO record (sid, rtype, rstate, rimage) VALUES ('%s', %d, %d, '%s')" % (sid, rtype, rstate, rimage))
+
+if __name__ == '__main__':
+    db = DBHandler()
+    for r in db.get_checkin_records('224', '2013-03-26 00:00:00', '2013-03-26 23:59:59'):
+        print r['rtime']
