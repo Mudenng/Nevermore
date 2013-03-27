@@ -25,8 +25,10 @@ class DBHandler:
         self.db = Connection("localhost", "nevermore", "root", "")
     
     #Login check 
-    def login(self, name, pwd):
-        if self.db.execute_rowcount("SELECT * FROM admin WHERE name = '%s' and pwd = '%s'" % (name, pwd)) == 1:
+    def staff_login(self, sid, pwd):
+        if self.db.execute_rowcount("SELECT * FROM staff WHERE sid = '%s'" % (sid)) == 0:
+            return -1
+        if self.db.execute_rowcount("SELECT * FROM staff WHERE sid = '%s' and pwd = '%s'" % (sid, pwd)) == 1:
             return 1
         else:
             return 0
@@ -93,5 +95,5 @@ class DBHandler:
 
 if __name__ == '__main__':
     db = DBHandler()
-    for r in db.get_checkin_records('224', '2013-03-26 00:00:00', '2013-03-26 23:59:59'):
+    for r in db.get_checkin_records('224', '2013-03-26 00:00:00', '2013-3-30 23:59:59'):
         print r['rtime']

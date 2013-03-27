@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" class="dk_fouc has-js">
+<head>
+	<meta charset="utf-8">
+	<title>个人考勤管理</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- Loading Bootstrap -->
+	<link href="static/html/css/bootstrap.css" rel="stylesheet">
+
+	<!-- Loading Flat UI -->
+	<link href="static/html/css/flat-ui.css" rel="stylesheet">
+
+	<script src="static/html/js/jquery.js" type="text/javascript"></script>
+</head>
+<body>
+	<div class="container">
+		<div class="row demo-row">
+			<div class="span9" style="width:943px">
+				<div class="navbar navbar-inverse">
+					<div class="navbar-inner">
+						<div class="container">
+							<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+							</button>
+							<div class="nav-collapse collapse">
+								<ul class="nav">
+									<li>
+										<a href="/">首页</a>
+									</li>
+									<li>
+										<a href="#">{{ sname }}，欢迎您</a>
+										<ul>
+											<li>
+												<a href="/manage">管理首页</a>
+											</li>
+											<li>
+												<a href="/staff_info">个人信息</a>
+											</li>
+											<li>
+												<a href="/staff_record">考勤记录</a>
+											</li>
+											<li>
+												<a href="/logout">退出管理</a>
+											</li>
+										</ul>
+										<!-- /Sub menu -->
+									</li>
+									<li>
+										<a href="#">About Us</a>
+									</li>
+								</ul>
+							</div>
+							<!--/.nav-collapse -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<h1 class="mbl pbl"><img src="/static/html/images/manage/icon2.png">   个人信息</h1>
+		
+		<dl class="palette palette-clouds">
+		<div class="row">
+
+			<div class="span3 offset1">
+				<dl class="palette palette-success-dark">
+				<h4 class="demo-panel-title">姓名： {{ sname }}</h4>
+				</dl>
+			</div>
+			
+			<div class="span3">
+				<dl class="palette palette-info">
+				<h4 class="demo-panel-title">员工编号： {{ sid }}</h4>
+				</dl>
+			</div>
+			<div class="span3">
+				<dl class="palette palette-amethyst">
+				<h4 class="demo-panel-title">上班正点时间： {{ ondutytime }}</h4>
+				</dl>
+			</div>
+			
+		</div>
+		</dl>
+
+		<dl class="palette palette-clouds">
+		<div class="row">
+			<div class="span3 offset1">
+				<dl class="palette palette-success-dark">
+				<h4 class="demo-panel-title">年龄： {{ age }}</h4>
+				</dl>
+			</div>
+			
+
+			<div class="span3">
+				<dl class="palette palette-info">
+				<h4 class="demo-panel-title">所属部门： {{ department }}</h4>
+				</dl>
+			</div>
+
+			<div class="span3">
+				<dl class="palette palette-amethyst">
+				<h4 class="demo-panel-title">下班正点时间： {{ offdutytime }}</h4>
+				</dl>
+			</div>
+		</div>
+		</dl>
+
+		<dl class="palette palette-clouds">
+		<div class="row">
+			<div class="span3 offset1">
+				<dl class="palette palette-success-dark">
+				<h4 class="demo-panel-title">身份证号： {{ idnumber }}</h4>
+				</dl>
+			</div>
+			
+			
+		</div>
+		</dl>
+		<div class="row"><br><br></div>
+		<dl class="palette palette-clouds">
+		<div class="row">
+			<div class="span3 offset4">
+				<a href="/manage" class="btn btn-large btn-block">返回</a>
+			</div>
+		</div>
+		</dl>
+
+	</div>
+	<!-- /container -->
+
+</body>
+</html>

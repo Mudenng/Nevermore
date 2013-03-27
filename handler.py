@@ -213,3 +213,45 @@ class AddStaffHandler(tornado.web.RequestHandler):
         os.remove(grayface_tmp_path)
         self.write("success")
 
+class AuthBaseHandler(tornado.web.RequestHandler):
+    def get_current_user(self):
+        return self.get_secure_cookie("sid")
+
+class LoginHandler(AuthBaseHandler):
+    def get(self):
+        self.render("static/html/login.html")
+
+    def post(self):
+        db = dbhandler.DBHandler()
+        sid = self.get_argument("sid")
+        pwd = self.get_argument("pwd")
+        check = db.staff_login(sid, pwd)
+        if check == 1:
+            self.set_secure_cookie("sid", sid)
+            self.write("success")
+        elif check == -1:
+            self.write("siderror")
+        elif check == 0:
+            self.write("pwderror")
+
+class LogoutHandler(AuthBaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        self.clear_cookie("sid")
+        self.redirect("/login")
+
+class RecordInfoHandler(AuthBaseHandler):
+    @tornado.web.authenticated
+    def post(self):
+        db = dbhandler.DBHandler()
+        sid = tornado.escape.xhtml_escape(self.current_user)
+        year = self.get_argument("year")
+        month = self.get_argument("month")
+        day = self.get_argument("day")
+        rtype = self.get_argument("type")
+        time1 = "%s-%s-%d 00:00:00" % (year, month, int(day))
+        time2 = "%s-%s-%d 23:59:59" % (year, month, int(day))
+        records = db.get_checkin_records(sid, time1, time2)
+        for r in records:
+            if r['rtype'] == int(rtype):
+                self.write(str(r['rtime']))
