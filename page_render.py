@@ -8,10 +8,6 @@ class MainPage(tornado.web.RequestHandler):
     def get(self):
         self.render("static/html/main.html")
 
-class AddStaffPage(tornado.web.RequestHandler):
-    def get(self):
-        self.render("static/html/addstaff.html")
-
 class ManagePage(handler.AuthBaseHandler):
     @tornado.web.authenticated
     def get(self):
@@ -59,3 +55,21 @@ class StaffRecordPage(handler.AuthBaseHandler):
                     month = month,
                    )
 
+class AdminHomePage(handler.AuthAdminBaseHandler):
+    def get(self):
+        if not self.current_user:
+            self.redirect("/login_admin")
+            return False;
+        name = tornado.escape.xhtml_escape(self.current_user)
+        db = dbhandler.DBHandler()
+        #staff = db.get_staff(sid)[0]
+        #sname = staff['name']
+        self.render("static/html/admin_home.html", name = name)
+
+class AddStaffPage(handler.AuthAdminBaseHandler):
+    def get(self):
+        if not self.current_user:
+            self.redirect("/login_admin")
+            return False;
+        name = tornado.escape.xhtml_escape(self.current_user)
+        self.render("static/html/add_staff.html", name = name)

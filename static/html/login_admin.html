@@ -2,7 +2,7 @@
 <html lang="en" class="dk_fouc has-js">
 <head>
 	<meta charset="utf-8">
-	<title>员工登录</title>
+	<title>管理人员登录</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<!-- Loading Bootstrap -->
@@ -54,9 +54,9 @@
 			</div>
 		</div>
 		<div class="login">
-			<div class="login-screen">
+			<div class="login-screen" style="background-color:#C0392B;">
 				<div class="login-icon">
-					<img src="static/html/images/login/icon.png" alt="Welcome">
+					<img src="static/html/images/login/icon_admin.png" alt="Welcome">
 					<h4>
 						Welcome to
 						<small>Nevermore</small>
@@ -64,15 +64,15 @@
 				</div>
 
 				<div class="login-form">
-					<div class="control-group" id="siddiv">
-						<input type="text" class="login-field" value="" placeholder="Enter your SID" id="login-sid" onfocus="textclean(this)" onblur="stateclean('siddiv')">
+					<div class="control-group" id="name">
+						<input type="text" class="login-field" value="" placeholder="Admin User Name" id="login-name" onfocus="textclean(this)" onblur="stateclean('name')">
 					</div>
 
 					<div class="control-group" id="pwddiv">
 						<input type="password" class="login-field" value="" placeholder="Password" id="login-pass" onfocus="textclean(this)" onblur="stateclean('pwddiv')">
 					</div>
 
-					<button id="snap" class="btn btn-large btn-block btn-primary" onclick="login()">登录</button>
+					<button id="snap" class="btn btn-large btn-block btn-danger" onclick="login()">登录</button>
 					<a class="login-link" href="#">Lost your password?</a>
 				</div>
 			</div>
@@ -83,26 +83,26 @@
 	<script type="text/javascript">
 	// login
 	function login() {
-		var siddiv = document.getElementById("siddiv");
-        siddiv.className = "control-group";
+		var name = document.getElementById("name");
+        name.className = "control-group";
         var pwddiv = document.getElementById("pwddiv");
         pwddiv.className = "control-group";
-		var sid = $("#login-sid").val();
+		var name = $("#login-name").val();
 		var pwd = $("#login-pass").val();
-		 $.post('/login',{'sid':sid, 'pwd':pwd}, 
+		 $.post('/login_admin',{'name':name, 'pwd':pwd}, 
                 function(msg) {
-                	if (msg == "siderror") {
-                		var siddiv = document.getElementById("siddiv");
-          				siddiv.className = "control-group error";
-          				var sidinput = document.getElementById("login-sid");
-          				sidinput.value = "SID错误";
+                	if (msg == "aiderror") {
+                		var name = document.getElementById("name");
+          				name.className = "control-group error";
+          				var sidinput = document.getElementById("login-name");
+          				sidinput.value = "Admin Name错误";
       				}
       				else if (msg == "pwderror") {
       					var pwddiv = document.getElementById("pwddiv");
           				pwddiv.className = "control-group error";
       				}
       				else if (msg == "success") {
-      					window.location = "/manage"
+      					window.location = "/admin_home"
       				}      			
       			}
                 );

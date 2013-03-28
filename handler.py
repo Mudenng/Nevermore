@@ -113,20 +113,20 @@ class AddStaffHandler(tornado.web.RequestHandler):
     def post(self):
         # get info
         sid = self.get_argument("sid")
-        # pwd = self.get_argument("pwd")
-        pwd = "123"
+        pwd = self.get_argument("pwd")
         name = self.get_argument("name")
-        idnumber = self.get_argument("id")
+        idnumber = self.get_argument("idnumber")
         age = int(self.get_argument("age"))
-        # department = int(self.get_argument("department"))
-        department = 1
+        department = int(self.get_argument("department"))
+        ondutytime = self.get_argument("ondutytime")
+        offdutytime = self.get_argument("offdutytime")
         
         grayface_tmp_path = "static/records/grayfaces/%s_tmp.jpg" % sid
         db = dbhandler.DBHandler()
 
         # write staff information to DB
         try:
-            db.add_staff(sid = sid, pwd = pwd, name = name, idnumber = idnumber, age = age, department = department)
+            db.add_staff(sid = sid, pwd = pwd, name = name, idnumber = idnumber, age = age, department = department, ondutytime = ondutytime, offdutytime = offdutytime)
         except:
             print "Error: Add staff information failed. sid = %s" % sid
             self.write("failed")
@@ -213,6 +213,7 @@ class AddStaffHandler(tornado.web.RequestHandler):
         os.remove(grayface_tmp_path)
         self.write("success")
 
+# staff manage
 class AuthBaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return self.get_secure_cookie("sid")
@@ -255,3 +256,48 @@ class RecordInfoHandler(AuthBaseHandler):
         for r in records:
             if r['rtype'] == int(rtype):
                 self.write(str(r['rtime']))
+
+# admin manage
+class AuthAdminBaseHandler(tornado.web.RequestHandler):
+    def get_current_user(self):
+        return self.get_secure_cookie("name")
+
+class LoginAdminHandler(AuthAdminBaseHandler):
+    def get(self):
+        self.render("static/html/login_admin.html")
+
+    def post(self):
+        db = dbhandler.DBHandler()
+        name = self.get_argument("name")
+        pwd = self.get_argument("pwd")
+        check = db.admin_login(name, pwd)
+        if check == 1:
+            self.set_secure_cookie("name", name)
+            self.write("success")
+        elif check == -1:
+            self.write("aiderror")
+        elif check == 0:
+            self.write("pwderror")
+
+class LogoutAdminHandler(AuthAdminBaseHandler):
+    def get(self):
+        if self.current_user:
+            name = tornado.escape.xhtml_escape(self.current_user)
+            self.clear_cookie("name")
+        self.redirect("/login_admin")
+
+class CheckSIDHandler(AuthAdminBaseHandler):
+    def post(self):
+        if self.current_user:
+            db = dbhandler.DBHandler()
+            sid = self.get_argument("sid")
+            records = db.get_staff(sid)
+            if len(records) == 0:
+                self.write("nosid")
+            else:
+                self.write("hadsid")
+        else:
+            self.redirect("/login_admin")
+
+
+

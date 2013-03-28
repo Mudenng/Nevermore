@@ -20,11 +20,11 @@ class Connection(tornado.database.Connection):
                           exc_info=True)
 
 class DBHandler:
-    #Init the connection
+    # Init the connection
     def __init__(self):
         self.db = Connection("localhost", "nevermore", "root", "")
     
-    #Login check 
+    # Login check 
     def staff_login(self, sid, pwd):
         if self.db.execute_rowcount("SELECT * FROM staff WHERE sid = '%s'" % (sid)) == 0:
             return -1
@@ -32,12 +32,21 @@ class DBHandler:
             return 1
         else:
             return 0
+
+    # Admin Login check 
+    def admin_login(self, name, pwd):
+        if self.db.execute_rowcount("SELECT * FROM admin WHERE name = '%s'" % (name)) == 0:
+            return -1
+        if self.db.execute_rowcount("SELECT * FROM admin WHERE name = '%s' and pwd = '%s'" % (name, pwd)) == 1:
+            return 1
+        else:
+            return 0
     
-    #Look up the table
+    # Look up the table
     def look_table(self, table):
         return self.db.query("SELECT * FROM %s" % table)
         
-    #Add one staff in db
+    # Add one staff in db
     def add_staff(self, sid, pwd, name, idnumber, age, department,
                   ondutytime = DEFAULT_ON_DUTY_TIME, 
                   offdutytime = DEFAULT_OFF_DUTY_TIME, 
