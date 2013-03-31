@@ -20,11 +20,20 @@
                 height:170px;
                 position:absolute; 
                 top:240px;
-                left:765px;
+                left:1015px;
                 float:left;
                 border:3px solid red;
                 opacity:0.6;
                 filter:alpha(opacity=60);
+            }
+            div.mainbox
+            {
+                width:300px; 
+                height:210px; 
+                position:relative; 
+                MARGIN-RIGHT: auto; 
+                MARGIN-LEFT: auto;
+                cursor: default;
             }
         </style>
 </head>
@@ -176,13 +185,13 @@
 						<div class="span4">
 							<h4>
 								采集面部图像
-								<font color="#E74C3C">(面部置于红色框内)</font>
+								<!--<font color="#E74C3C">(面部置于红色框内)</font>-->
 							</h4>
-							<div id="svideo_div" class="mainbox">
+							<div id="svideo_div">
 								<video id="video" width="270" height="200" autoplay=""></video>
 								<canvas id="canvas" width="270" height="200" style="display:none"></canvas>
 							</div>
-							<div class="transbox" id="box"></div>
+							<!--<div class="transbox" id="box"></div>-->
 							<div id="faceimg"></div>
 							<button id="snap" class="btn btn-large btn-primary" style="width:270px;height:42px;" onclick="snap()">捕     获</button>
 						</div>

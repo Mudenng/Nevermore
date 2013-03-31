@@ -5,7 +5,7 @@ sys.path.append('..')
 import dbhandler
 import face_recognise
 
-ratio = 2.0
+ratio = 1.3
 
 # Manhattan Distance
 def L1(v1,v2):
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     for staff in staffs:
         sid = staff["sid"]
         eface_str = staff["eigenface"]
-        eigenface = [float(i) for i in eface_str.split(" ")]        
+        eigenface = [float(i) for i in eface_str.split(" ")]
         efaces[sid] = eigenface
 
     # Update all staffs' distance
