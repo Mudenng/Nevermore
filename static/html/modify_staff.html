@@ -2,7 +2,7 @@
 <html lang="en" class="dk_fouc has-js">
 <head>
 	<meta charset="utf-8">
-	<title>添加员工</title>
+	<title>修改员工信息</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<!-- Loading Bootstrap -->
@@ -81,7 +81,7 @@
 		<div class="row">
 			<div class="span4">
 				<h1 class="mbl pbl">
-					<img src="/static/html/images/manage/icon3.png">添加员工</h1>
+					<img src="/static/html/images/manage/icon3.png">修改员工信息</h1>
 			</div>
 		</div>
 		<div class="row">
@@ -90,17 +90,17 @@
 				<dl class="palette palette-clouds">
 					<div class="row">
 						<div class="span3">
-							<div class="control-group" id="sid_div">
+							<div class="control-group info" id="sid_div">
 								<h4> <font color="7F8C8D">SID</font>
 								</h4>
-								<input type="text" class="" value="" placeholder="员工编号 SID" id="sid"  onfocus="textclean(this)" onblur="checksid(this)"></div>
+								<input type="text" class="" value="{{ sid }}" placeholder="员工编号 SID" id="sid" disabled></div>
 						</div>
 						<div class="span4">
 							<div class="control-group" id="sdepartment_div">
 								<h4> <font color="7F8C8D">部门</font>
 								</h4>
 								<select value="" class="span4" tabindex="1" id="sdepartment" style="">
-									<option value="0" selected="selected">研发部</option>
+									<option value="0">研发部</option>
 									<option value="1">市场部</option>
 									<option value="2">人力资源部</option>
 									<option value="3">后勤部</option>
@@ -115,7 +115,7 @@
 								<h4>
 									<font color="7F8C8D">姓名</font>
 								</h4>
-								<input type="text" class="" value="" placeholder="员工姓名 Name" id="sname" onblur="stateclean('sname')"></div>
+								<input type="text" class="" value="{{ sname }}" placeholder="员工姓名 Name" id="sname" onblur="stateclean('sname')"></div>
 						</div>
 						<div class="span2">
 							<div class="control-group" id="sondutytime_div">
@@ -126,7 +126,7 @@
 									<option value="7:00">7:00</option>
 									<option value="7:30">7:30</option>
 									<option value="8:00">8:00</option>
-									<option value="8:30" selected="selected">8:30</option>
+									<option value="8:30">8:30</option>
 									<option value="9:00">9:00</option>
 									<option value="9:30">9:30</option>
 								</select>
@@ -141,7 +141,7 @@
 									<option value="16:00">16:00</option>
 									<option value="16:30">16:30</option>
 									<option value="17:00">17:00</option>
-									<option value="17:30" selected="selected">17:30</option>
+									<option value="17:30">17:30</option>
 									<option value="18:00">18:00</option>
 									<option value="18:30">18:30</option>
 								</select>
@@ -154,14 +154,14 @@
 								<h4>
 									<font color="7F8C8D">年龄</font>
 								</h4>
-								<input type="text" class="" value="" placeholder="年龄 Age" id="sage"  onblur="stateclean('sage')"></div>
+								<input type="text" class="" value="{{ age }}" placeholder="年龄 Age" id="sage"  onblur="stateclean('sage')"></div>
 						</div>
 						<div class="span4">
 							<div class="control-group" id="spwd_div">
 								<h4>
 									<font color="7F8C8D">登录密码</font>
 								</h4>
-								<input type="password" class="span4" value="" placeholder="登录密码 Password" id="spwd" onfocus="textclean(this)" onblur="stateclean('spwd')"></div>
+								<input type="password" class="span4" value="{{ pwd }}" placeholder="登录密码 Password" id="spwd" onfocus="textclean(this)" onblur="stateclean('spwd')"></div>
 						</div>
 					</div>
 					<div class="row">
@@ -170,14 +170,14 @@
 								<h4>
 									<font color="7F8C8D">身份证号</font>
 								</h4>
-								<input type="text" class="" value="" placeholder="身份证号 ID Number" id="sidnumber" onblur="stateclean('sidnumber')"></div>
+								<input type="text" class="" value="{{ idnumber }}" placeholder="身份证号 ID Number" id="sidnumber" onblur="stateclean('sidnumber')"></div>
 						</div>
 						<div class="span4">
 							<div class="control-group" id="spwd2_div">
 								<h4>
 									<font color="7F8C8D">重复密码</font>
 								</h4>
-								<input type="password" class="span4" value="" placeholder="重复密码 Password Again" id="spwd2" onfocus="textclean(this)" onblur="checkpwd()"></div>
+								<input type="password" class="span4" value="{{ pwd }}" placeholder="重复密码 Password Again" id="spwd2" onfocus="textclean(this)" onblur="checkpwd()"></div>
 						</div>
 					</div>
 				</div>
@@ -187,7 +187,7 @@
 					<div class="row">
 						<div class="span4">
 							<h4>
-								采集面部图像
+								采集面部(可直接提交使用原图像)
 								<!--<font color="#E74C3C">(面部置于红色框内)</font>-->
 							</h4>
 							<div id="svideo_div">
@@ -205,34 +205,33 @@
 		<br>
 		<div class="row">
 			<div class="span3 offset3">
-				<button id="submit" class="btn btn-large btn-block disabled" onclick="submit()" disabled>提交</button>
+				<button id="submit" class="btn btn-large btn-block" onclick="submit()">提交</button>
 			</div>
 			<div class="span3">
-				<a href="/admin_home" class="btn btn-large btn-block">取消</a>
+				<a href="/staffs" class="btn btn-large btn-block">取消</a>
 			</div>
 		</div>
 	</div>
 	<!-- /container -->
 
 	<script type="text/javascript">
+	// 初始化部门和上下班时间
+	var departid = {{ departid }};
+	var departSelect = document.getElementById("sdepartment");
+	departSelect.value = departid;
+
+	var ontime = "{{ ondutytime }}";
+	var ontimeSelect = document.getElementById("sondutytime");
+	ontimeSelect.value = ontime;
+	var offtime = "{{ offdutytime }}";
+	var offtimeSelect = document.getElementById("soffdutytime");
+	offtimeSelect.value = offtime;
+
+
 	function textclean(obj) {
       	obj.value = "";
     }
-	function checksid(obj) {
-		var sid = obj.value;
-		$.post('/checksid', {'sid':sid},
-			function(msg) {
-				if (msg != "nosid") {
-					var siddiv = document.getElementById("sid_div");
-      				siddiv.className = "control-group error";
-      				obj.value = "SID 已存在";
-				}
-				else {
-					var siddiv = document.getElementById("sid_div");
-      				siddiv.className = "control-group";
-				}
-			});
-	}
+	
 	function checkpwd() {
 		if ($("#spwd").val() != $("#spwd2").val()) {
 			$("#spwd_div").attr('class', "control-group error");
@@ -243,6 +242,10 @@
 			$("#spwd2_div").attr('class', "control-group");
 		}
 	}
+
+	// 是否重新捕获了头像
+	var newpic = 0;
+
 	function snap() {
 		var sid = $("#sid").val();
 		if (sid.length == 0) {
@@ -259,8 +262,7 @@
 	            function(msg){
 		            if (msg == 'success') {
 		                $("#faceimg").html("<table width='270px' height='99px'><tr><td><h5>捕获到您的面部图像：</h5><br>若不满意您可以重新点击捕获</td><td><img src='static/records/faces/" + sid +"_tmp.jpg' width='100' height='100'></td></tr></table>");
-		                $("#submit").removeAttr("disabled");
-		                $("#submit").attr("class", "btn btn-large btn-block");
+		                newpic = 1;
 		            }
 		            else {
 		                alert("人脸捕获失败，请重试！");
@@ -307,17 +309,11 @@
 	    var sondutytime = document.getElementById("sondutytime").value;
 	    var soffdutytime = document.getElementById("soffdutytime").value;
 
-	    $.post('/add_new_staff',{ 'name':sname, 'age':sage, 'idnumber':sidnumber, 'sid':sid , 'pwd':spwd, 'department':sdepartment, 'ondutytime':sondutytime, 'offdutytime':soffdutytime}, 
+	    $.post('/update_staff',{ 'name':sname, 'age':sage, 'idnumber':sidnumber, 'sid':sid , 'pwd':spwd, 'department':sdepartment, 'ondutytime':sondutytime, 'offdutytime':soffdutytime, 'newpic':newpic}, 
 	            function(msg){
 	            if (msg == 'success') {
 	                alert("成功");
-					$("#sid").val("");
-					$("#sname").val("");
-					$("#sage").val("");
-					$("#sidnumber").val("");
-					$("#spwd").val("");
-					$("#spwd2").val("");
-					$("#faceimg").html("");
+	                self.location = "/staffs";
 	            }
 	            else {
 	            	alert("失败，请检查表单并重试");

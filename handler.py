@@ -13,6 +13,7 @@ import face_recognise
 import pic_pretreatment
 import dbhandler
 import checkin
+import update_dis
 
 TIMEFORMAT = "%Y-%m-%d %X"
 
@@ -22,12 +23,24 @@ def L1(v1,v2):
 
 class RecogniseHandler(tornado.web.RequestHandler):
     def post(self):
+        remote_ip = self.request.remote_ip
         pic = self.get_argument("pic")
         sid = self.get_argument("sid")
         picData = base64.b64decode(pic)
         buf = StringIO.StringIO()
+        db = dbhandler.DBHandler()
         buf.write(picData)
         buf.seek(0)
+        # verify ip
+        ip_start = db.get_setting("ip_start")
+        ip_end = db.get_setting("ip_end")
+        import struct,socket
+        start_int = struct.unpack("!I",socket.inet_aton(ip_start))[0]
+        end_int = struct.unpack("!I",socket.inet_aton(ip_end))[0]
+        ip_int = struct.unpack("!I",socket.inet_aton(remote_ip))[0]
+        if ip_int < start_int or ip_int > end_int:
+            self.write("-99")
+            return False
         # face detection
         region = face_detect.process(imgData = buf)
         # pretreatment
@@ -35,7 +48,6 @@ class RecogniseHandler(tornado.web.RequestHandler):
             cvImage = pic_pretreatment.process(region)
             cv2Data = numpy.asarray(cvImage[:])
             # get mean and eigenvectors from DB
-            db = dbhandler.DBHandler()
             try:
                mean, eigenvectors = db.get_pca()
             except:
@@ -213,6 +225,138 @@ class AddStaffHandler(tornado.web.RequestHandler):
         os.remove(grayface_tmp_path)
         self.write("success")
 
+class StaffListHandler(tornado.web.RequestHandler):
+    def post(self):
+        department = self.get_argument("department")
+        page = self.get_argument("page")
+        sid = self.get_argument("sid")
+        db = dbhandler.DBHandler()
+        msg = u""
+        if sid == "-1":
+            rows = db.select_n_rows('staff', int(department), int(page), 10)
+            if len(rows) == 0:
+                self.write("")
+                return
+            for r in rows:
+                msg += r['sid'] + u" " + str(r['department']) + u" " + r['name'] + u" " + str(r['age']) + u" " + r['idnumber'] + u" " + r['ondutytime'] + u" " + r['offdutytime']
+                msg += u"|"
+            msg = msg[:-1]
+        else:
+            r = db.get_staff(sid)
+            if int(department) != -1 and r[0]['department'] != int(department):
+                return
+            msg += r[0]['sid'] + u" " + str(r[0]['department']) + u" " + r[0]['name'] + u" " + str(r[0]['age']) + u" " + r[0]['idnumber'] + u" " + r[0]['ondutytime'] + u" " + r[0]['offdutytime']
+        self.write(msg)
+
+class UpdateStaffHandler(tornado.web.RequestHandler):
+    def post(self):
+        # get info
+        sid = self.get_argument("sid")
+        pwd = self.get_argument("pwd")
+        name = self.get_argument("name")
+        idnumber = self.get_argument("idnumber")
+        age = int(self.get_argument("age"))
+        department = int(self.get_argument("department"))
+        ondutytime = self.get_argument("ondutytime")
+        offdutytime = self.get_argument("offdutytime")
+        newpic = self.get_argument("newpic")
+        
+        grayface_tmp_path = "static/records/grayfaces/%s_tmp.jpg" % sid
+        db = dbhandler.DBHandler()
+
+        if int(newpic) == 0:
+            # update staff information
+            try:
+                db.update_staff(sid = sid, pwd = pwd, name = name, idnumber = idnumber, age = age, department = department, ondutytime = ondutytime, offdutytime = offdutytime)
+            except:
+                print "Error: Update staff information failed. sid = %s" % sid
+                self.write("failed")
+                return False
+            self.write("success")
+        elif int(newpic) == 1:
+            # update face picture to DB
+            grayface = cv2.imread(grayface_tmp_path, 0)
+            grayface = grayface.reshape(100 * 100)
+            grayface_str = ""
+            for p in grayface:
+                grayface_str += str(p)
+                grayface_str += " "
+            grayface_str = grayface_str[:-1]
+            try:
+                db.delete_face(sid)
+                db.store_face(sid, grayface_str)
+            except:
+                print "Error: Update image to DB failed. sid = %s" % sid
+                self.write("failed")
+                return False
+
+            # Compute PCA - Training
+            mean, eigenvectors = face_recognise.computePCA()
+
+            # Update all staffs' eigenface
+            staffs = db.look_table("staff")
+            efaces = {}
+            for staff in staffs:
+                sid = staff["sid"]
+                try:
+                    records = db.get_face(sid)
+                except:
+                    print "Error: Get image from DB failed. sid = %s" % sid
+                    self.write("failed")
+                    return False
+                nm = numpy.fromstring(records[0]['img'], dtype = numpy.uint8, sep = " ")
+                nm = nm.reshape(100, -1)
+                eigenface = face_recognise.get_eigenface(mean, eigenvectors, cvData = nm)
+                l = ["%.8f" % number for number in eigenface[0]]
+                eigenface_str = " ".join(l)
+                try:
+                    db.update_eigenface(sid, eigenface_str)
+                except:
+                    print "Error: Write eigenface to DB failed. sid = %s" % sid
+                    self.write("failed")
+                    return False
+                efaces[sid] = eigenface
+
+            # Update all staffs' distance
+            ratio = 2.0
+            for sid in efaces:
+                theface = efaces[sid]
+                min = 10000000.0
+                for other in efaces:
+                    if other != sid:
+                        dis = L1(theface[0], efaces[other][0])
+                        if dis < min:
+                            min = dis
+                try:
+                    db.update_distance(sid, min / ratio)
+                except:
+                    print "Error: Write distance to DB failed. sid = %s" % sid
+                    self.write("failed")
+                    return False
+
+            # Write mean and eigenvectors to DB
+            # mean to string
+            m = ["%.8f" % number for number in mean[0]]
+            mean_str = " ".join(m)
+            # eigenvectors to string
+            eigenvectors_str = ""
+            for vec in eigenvectors:
+                v = ["%.8f" % number for number in vec]
+                vec_str = " ".join(v)
+                eigenvectors_str += vec_str
+                eigenvectors_str += "|"
+            eigenvectors_str = eigenvectors_str[:-1]
+            try:
+                db.update_pca(mean_str, eigenvectors_str)
+            except:
+                print "Error: Update mean and eigenvectors to DB failed. "
+                self.write("failed")
+                return False
+
+            os.remove(grayface_tmp_path)
+            self.write("success")
+
+
 # staff manage
 class AuthBaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -299,5 +443,161 @@ class CheckSIDHandler(AuthAdminBaseHandler):
         else:
             self.redirect("/login_admin")
 
+class DeleteStaffHandler(tornado.web.RequestHandler):
+    def post(self):
+        sid = self.get_argument("sid")
+        db = dbhandler.DBHandler()
+        try:
+            db.del_staff(sid)
+            db.delete_face(sid)
+            self.write("success")
+        except:
+            print "Error: Delete staff error. sid = %s" % sid
+            self.write("failed")
 
+class CheckRecordHandler(tornado.web.RequestHandler):
+    def post(self):
+        db = dbhandler.DBHandler()
+        sid = self.get_argument("sid")
+        year = self.get_argument("year")
+        month = self.get_argument("month")
+        day = self.get_argument("day")
+        rtype = self.get_argument("type")
+        time1 = "%s-%s-%d 00:00:00" % (year, month, int(day))
+        time2 = "%s-%s-%d 23:59:59" % (year, month, int(day))
+        records = db.get_checkin_records(sid, time1, time2)
+        for r in records:
+            if r['rtype'] == int(rtype):
+                self.write(str(r['rtime']) + u"|" + str(r['rid']) + u"|" + str(r['rimage']))
 
+class RecordChangeHandler(AuthAdminBaseHandler):
+    def post(self):
+        if self.current_user:
+            opp = int(self.get_argument("opp"))
+            rid = int(self.get_argument("rid"))
+            db = dbhandler.DBHandler()
+            if opp == 0:
+                db.chg_checkin_record(rid)
+            elif opp == 1:
+                db.del_checkin_record(rid)
+        else:
+            self.redirect("/login_admin")
+
+class RecordAddHandler(AuthAdminBaseHandler):
+    def post(self):
+        if self.current_user:
+            sid = self.get_argument("sid")
+            year = self.get_argument("year")
+            month = int(self.get_argument("month"))
+            day = int(self.get_argument("day"))
+            if month < 10:
+                monthstr = "0%d" % month
+            else:
+                monthstr = "%d" % month
+            if day < 10:
+                daystr = "0%d" % day
+            else:
+                daystr = "%d" % day
+            rtime = "%s-%s-%s 00:00:00" % (year, monthstr, daystr)
+            rtype = int(self.get_argument("type"))
+            rstate = int(self.get_argument("state"))
+            if rtype == 0 and rstate == -1:
+                rstate = 1
+            if rtype == 1 and rstate == -1:
+                rstate = 2
+            db = dbhandler.DBHandler()
+            db.db.execute("INSERT INTO record (sid, rtype, rstate, rimage, rtime) VALUES ('%s', %d, %d, 'NULL', '%s')"% (sid, rtype, rstate, rtime))
+        else:
+            self.redirect("/login_admin")
+
+class AdminsListHandler(tornado.web.RequestHandler):
+    def post(self):
+        page = self.get_argument("page")
+        db = dbhandler.DBHandler()
+        msg = u""
+        rows = db.select_n_rows('admin', -1, int(page), 10)
+        if len(rows) == 0:
+            self.write("")
+            return
+        for r in rows:
+            if r['atype'] == 0:
+                atype = u"超级管理员"
+            elif r['atype'] == 1:
+                atype = u"人事管理员"
+            elif r['atype'] == 2:
+                atype = u"系统管理员"
+            msg += str(r['aid']) + u" " + r['name'] + u" " + atype
+            msg += u"|"
+        msg = msg[:-1]
+        self.write(msg)
+
+class AddAdminHandler(AuthAdminBaseHandler):
+    def post(self):
+        if self.current_user:
+            aname = self.get_argument("aname")
+            pwd = self.get_argument("pwd")
+            power = int(self.get_argument("power"))
+            try:
+                db = dbhandler.DBHandler()
+                db.add_admin(aname, pwd, power)
+                self.write("success")
+            except:
+                self.write("failed")
+        else:
+            self.redirect("/login_admin")
+
+class DeleteAdminHandler(AuthAdminBaseHandler):
+    def post(self):
+        if self.current_user:
+            aid = int(self.get_argument("aid"))
+            if aid == 1:
+                self.write("failed")
+                return
+            db = dbhandler.DBHandler()
+            try:
+                db.del_admin(aid)
+                self.write("success")
+            except:
+                self.write("failed")
+        else:
+            self.redirect("/login_admin")
+
+class UpdateAdminHandler(AuthAdminBaseHandler):
+    def post(self):
+        if self.current_user:
+            aid = int(self.get_argument("aid"))
+            pwd = self.get_argument("pwd")
+            power = int(self.get_argument("power"))
+            if aid == 1:
+                power = 0
+            db = dbhandler.DBHandler()
+            try:
+                db.update_admin(aid, pwd, power)
+                self.write("success")
+            except:
+                self.write("failed")
+        else:
+            self.redirect("/login_admin")
+
+class ChangeSettingsHandler(AuthAdminBaseHandler):
+    def post(self):
+        if self.current_user:
+            sensitivity = self.get_argument("sensitivity")
+            senval = int(sensitivity)
+            ip_start = self.get_argument("ipstart")
+            ip_end = self.get_argument("ipend")
+            try:
+                db = dbhandler.DBHandler()
+                db.update_setting("ip_start", ip_start)
+                db.update_setting("ip_end", ip_end)
+                if senval != -1:
+                    if update_dis.update(senval - 1) == 0:
+                        db.update_setting("sensitivity", sensitivity)
+                    else:
+                        self.write("failed")
+                        return
+                self.write("success")
+            except:
+                self.write("failed")
+        else:
+            self.redirect("/login_admin")

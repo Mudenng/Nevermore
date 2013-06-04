@@ -41,6 +41,22 @@ class DBHandler:
             return 1
         else:
             return 0
+
+    # Get one admin
+    def get_admin(self, aid):
+        return self.db.query("SELECT * FROM admin WHERE aid = %d" % (aid))
+
+    # Add Admin
+    def add_admin(self, aname, pwd, power):
+        self.db.execute("INSERT INTO admin (name, pwd, atype) VALUES ('%s', '%s', %d)" % (aname, pwd, power))
+
+    # Update Admin
+    def update_admin(self, aid, pwd, power):
+        self.db.execute("UPDATE admin SET pwd = '%s', atype = %d WHERE aid = %d" % (pwd, power, aid))
+
+    # Delete Admin
+    def del_admin(self, aid):
+        self.db.execute("DELETE from admin WHERE aid = %d" % aid)
     
     # Look up the table
     def look_table(self, table):
@@ -54,6 +70,10 @@ class DBHandler:
                   eigenface = " ",
                  ):
         self.db.execute("INSERT INTO staff (sid, pwd, name, idnumber, age, department, ondutytime, offdutytime, distance, eigenface) VALUES ('%s', '%s', '%s', '%s', %d, %d, '%s', '%s', %f, '%s')" % (sid, pwd, name, idnumber, age, department, ondutytime, offdutytime, distance, eigenface))
+
+    # Add one staff in db
+    def update_staff(self, sid, pwd, name, idnumber, age, department, ondutytime, offdutytime):
+        self.db.execute("UPDATE staff set pwd = '%s', name = '%s', idnumber = '%s', age = %d, department = %d, ondutytime = '%s', offdutytime = '%s' WHERE sid = '%s'" % (pwd, name, idnumber, age, department, ondutytime, offdutytime, sid))
 
     #Get one staff's info
     def get_staff(self, sid):
@@ -90,6 +110,10 @@ class DBHandler:
     def store_face(self, sid, img_string):
         self.db.execute("INSERT INTO image (sid, img) VALUES ('%s', '%s')" % (sid, img_string))
 
+    # Delete face image from DB
+    def delete_face(self, sid):
+        self.db.execute("DELETE FROM image WHERE sid = '%s'" % (sid))
+
     # Get face image by sid
     def get_face(self, sid):
         return self.db.query("SELECT * FROM image WHERE sid = '%s'" % (sid))
@@ -102,7 +126,37 @@ class DBHandler:
     def add_checkin_record(self, sid, rtype, rstate, rimage):
         self.db.execute("INSERT INTO record (sid, rtype, rstate, rimage) VALUES ('%s', %d, %d, '%s')" % (sid, rtype, rstate, rimage))
 
+    # Delete checkin record
+    def del_checkin_record(self, rid):
+        self.db.execute("DELETE FROM record WHERE rid = %d" % rid)
+
+    # Change checkin record to normal
+    def chg_checkin_record(self, rid):
+        self.db.execute("UPDATE record SET rstate = 0 WHERE rid = %d" % rid)
+
+    #Get all department id
+    def get_allDepartment(self):
+		return self.db.query("SELECT DISTINCT department FROM staff")
+		
+    #Get all staff id
+    def get_allStaff(self):
+        return self.db.query("SELECT sid,department FROM staff")
+
+    # page list
+    def select_n_rows(self, table, department, page, n):
+        if department == -1:
+		    return self.db.query("SELECT * FROM %s LIMIT %d, %d" % (table, page*n, n))
+        else:
+		    return self.db.query("SELECT * FROM %s WHERE department = %d LIMIT %d, %d" % (table, department, page*n, n))
+
+    # get setting
+    def get_setting(self, skey):
+        return self.db.query("SELECT value FROM setting WHERE skey = '%s'" % skey)[0]['value']
+
+    # update setting
+    def update_setting(self, skey, value):
+        self.db.execute("UPDATE setting SET value = '%s' WHERE skey = '%s'" % (value, skey))
+
 if __name__ == '__main__':
     db = DBHandler()
-    for r in db.get_checkin_records('224', '2013-03-26 00:00:00', '2013-3-30 23:59:59'):
-        print r['rtime']
+    print db.get_setting("sensitivity")
