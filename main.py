@@ -1,6 +1,7 @@
 import tornado.ioloop
 import tornado.web
 import os
+import sys
 import handler
 import page_render
 
@@ -56,5 +57,7 @@ application = tornado.web.Application([
 ], debug = True, **settings)
 
 if __name__ == "__main__":
-    application.listen(8888)
+    port = int(sys.argv[1])
+    application.listen(port)
+    print "Server runing at port %d" % port
     tornado.ioloop.IOLoop.instance().start()

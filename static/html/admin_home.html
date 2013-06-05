@@ -55,8 +55,8 @@
 		</div>
 		
 		<div class="row">
-			<div class="span4">
-			<h1 class="mbl pbl"><img src="/static/html/images/manage/icon3.png">   管理人员首页</h1>
+			<div class="span8">
+			<h1 class="mbl pbl"><img src="/static/html/images/manage/icon3.png">   管理人员首页{% if atype == "2" %} （系统管理员） {%end%}{% if atype == "1" %} （人事管理员） {%end%}{% if atype == "0" %} （超级管理员） {%end%}</h1>
 			</div>
 		</div>
 		<div class="row">
@@ -69,19 +69,19 @@
 		    <div class="span3">
 		    	<div class="tile">
 		    		<img class="tile-image big-illustration" alt="" src="/static/html/images/manage/admin7.png">
-		    		<a class="btn btn-primary btn-large btn-block" href="/add_staff">添加员工</a>
+		    		<a class="btn btn-primary btn-large btn-block" href="/add_staff" id="add_staff">添加员工</a>
 		    	</div>
 		    </div>
 		    <div class="span3">
 		    	<div class="tile">
 		    		<img class="tile-image big-illustration" alt="" src="/static/html/images/manage/admin6.png">
-		    		<a class="btn btn-primary btn-large btn-block" href="/staffs">查看/修改员工信息</a>
+		    		<a class="btn btn-primary btn-large btn-block" href="/staffs" id="staffs">查看/修改员工信息</a>
 		    	</div>
 		    </div>
 		    <div class="span3">
 		    	<div class="tile">
 		    		<img class="tile-image big-illustration" alt="" src="/static/html/images/manage/info.png">
-		    		<a class="btn btn-primary btn-large btn-block" href="#">其他</a>
+		    		<a class="btn btn-primary btn-large btn-block" href="#" style="background-color:gray;">其他</a>
 		    	</div>
 		    </div>
         </div>
@@ -96,19 +96,19 @@
 	        <div class="span3">
 	          <div class="tile">
 	            <img class="tile-image" alt="" src="/static/html/images/manage/admin3.png">
-	            <a class="btn btn-primary btn-large btn-block" href="/record_sum">考勤记录汇总</a>
+	            <a class="btn btn-primary btn-large btn-block" href="/record_sum" id="record_sum">考勤记录汇总</a>
 	          </div>
 	        </div>
 	        <div class="span3">
 	          <div class="tile">
 	            <img class="tile-image" alt="" src="/static/html/images/manage/admin5.png">
-	            <a class="btn btn-primary btn-large btn-block" href="/check_records">查看/核对记录</a>
+	            <a class="btn btn-primary btn-large btn-block" href="/check_records" id="check_records">查看/核对记录</a>
 	          </div>
 	        </div>
 	        <div class="span3">
 	          <div class="tile">
 	            <img class="tile-image" alt="" src="/static/html/images/manage/admin2.png">
-	            <a class="btn btn-primary btn-large btn-block" href="#">其他</a>
+	            <a class="btn btn-primary btn-large btn-block" href="#" style="background-color:gray;">其他</a>
 	          </div>
 	        </div>
 	    </div>
@@ -123,13 +123,13 @@
 	        <div class="span3">
 				<div class="tile">
 		            <img class="tile-image" alt="" src="/static/html/images/manage/admin4.png">
-		            <a class="btn btn-primary btn-large btn-block" href="/config">系统参数</a>
+		            <a class="btn btn-primary btn-large btn-block" href="/config" id="config">系统参数</a>
 		        </div>
         	</div>
         	<div class="span3">
 				<div class="tile">
 		            <img class="tile-image" alt="" src="/static/html/images/manage/admin1.png">
-		            <a class="btn btn-primary btn-large btn-block" href="/admins">权限管理</a>
+		            <a class="btn btn-primary btn-large btn-block" href="/admins" id="admins">权限管理</a>
 		        </div>
         	</div>
         	<div class="span3">
@@ -139,9 +139,50 @@
 		        </div>
         	</div>
       </div>
+      <div class="row"><div class="span12">&nbsp;</div></div>
 
 	</div>
 	<!-- /container -->
 
+	<div class="footer">
+<div class="container">
+  <dl class="palette palette-clouds">
+  <div class="row">
+    <div class="span8">
+      <h5 class="footer-title">About</h5>
+      <p>
+        这是我们的工程实践项目，一个人脸识别考勤系统
+        <br>
+        该系统基于B/S架构，使用了HTML5技术，后台基于Tornado框架
+        <br>
+        GitHub :
+        <a href="https://github.com/inccinf/Nevermore" target="_blank">GitHub - Nevermore</a>
+      </p>
+    </div>
+  </div>
+</dl>
+</div>
+</div>
+<script type="text/javascript">
+var atype = {{atype}};
+if (atype == "1") {
+	$("#config").attr("href", "#");
+	$("#config").attr("style", "background-color:gray;");
+	$("#admins").attr("href", "#");
+	$("#admins").attr("style", "background-color:gray;");
+}
+if (atype == "2") {
+	$("#add_staff").attr("href", "#");
+	$("#add_staff").attr("style", "background-color:gray;");
+	$("#staffs").attr("href", "#");
+	$("#staffs").attr("style", "background-color:gray;");
+	$("#check_records").attr("href", "#");
+	$("#check_records").attr("style", "background-color:gray;");
+	$("#record_sum").attr("href", "#");
+	$("#record_sum").attr("style", "background-color:gray;");
+	$("#admins").attr("href", "#");
+	$("#admins").attr("style", "background-color:gray;");
+}
+</script>
 </body>
 </html>

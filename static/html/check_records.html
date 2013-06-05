@@ -176,6 +176,8 @@ function stateclean(s) {
 
 function select() {
 	var sid = $("#sid").val();
+	var year = document.getElementById("year").value;
+	var month = document.getElementById("month").value;
 	if (sid.length == 0) {
 		var sidcontrol = document.getElementById("sidcontrol");
 		sidcontrol.className = "span3 control-group error";
@@ -184,27 +186,29 @@ function select() {
 		window.location = "/check_records";
 		return;
 	}
-	var year = document.getElementById("year").value;
-	var month = document.getElementById("month").value;
 	window.location = "/check_records?" + "year=" + year + "&month=" + month + "&sid=" + sid;
 }
 
 function delrecord(rid) {
-	if (confirm("确认删除该条记录吗？"))
-		$.post("/record_chg", {'rid':rid, 'opp':1});
 	var sid = $("#sid").val();
 	var year = document.getElementById("year").value;
 	var month = document.getElementById("month").value;
-	window.location = "/check_records?" + "year=" + year + "&month=" + month + "&sid=" + sid;
+	if (confirm("确认删除该条记录吗？"))
+		$.post("/record_chg", {'rid':rid, 'opp':1}, function(msg) {
+			window.location = "/check_records?" + "year=" + year + "&month=" + month + "&sid=" + sid;
+		});
+	
+	
 }
 
 function modrecord(rid) {
-	if (confirm("确认修改该条记录吗？"))
-		$.post('/record_chg', {'rid':rid, 'opp':0});
 	var sid = $("#sid").val();
 	var year = document.getElementById("year").value;
 	var month = document.getElementById("month").value;
-	window.location = "/check_records?" + "year=" + year + "&month=" + month + "&sid=" + sid;
+	if (confirm("确认修改该条记录吗？"))
+		$.post('/record_chg', {'rid':rid, 'opp':0}, function(msg) {
+			window.location = "/check_records?" + "year=" + year + "&month=" + month + "&sid=" + sid;
+		});
 }
 
 function more(day,type) {

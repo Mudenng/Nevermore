@@ -415,12 +415,14 @@ class LoginAdminHandler(AuthAdminBaseHandler):
         name = self.get_argument("name")
         pwd = self.get_argument("pwd")
         check = db.admin_login(name, pwd)
-        if check == 1:
+        if check[0] == 1:
+            atype = check[1]
             self.set_secure_cookie("name", name)
+            self.set_secure_cookie("atype",str(atype))
             self.write("success")
-        elif check == -1:
+        elif check[0] == -1:
             self.write("aiderror")
-        elif check == 0:
+        elif check[0] == 0:
             self.write("pwderror")
 
 class LogoutAdminHandler(AuthAdminBaseHandler):
@@ -428,6 +430,7 @@ class LogoutAdminHandler(AuthAdminBaseHandler):
         if self.current_user:
             name = tornado.escape.xhtml_escape(self.current_user)
             self.clear_cookie("name")
+            self.clear_cookie("atype")
         self.redirect("/login_admin")
 
 class CheckSIDHandler(AuthAdminBaseHandler):

@@ -36,11 +36,12 @@ class DBHandler:
     # Admin Login check 
     def admin_login(self, name, pwd):
         if self.db.execute_rowcount("SELECT * FROM admin WHERE name = '%s'" % (name)) == 0:
-            return -1
+            return (-1, -1)
         if self.db.execute_rowcount("SELECT * FROM admin WHERE name = '%s' and pwd = '%s'" % (name, pwd)) == 1:
-            return 1
+            atype = self.db.query("SELECT atype FROM admin WHERE name = '%s'" % name)[0]['atype']
+            return (1, int(atype))
         else:
-            return 0
+            return (0, -1)
 
     # Get one admin
     def get_admin(self, aid):

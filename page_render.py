@@ -62,13 +62,12 @@ class AdminHomePage(handler.AuthAdminBaseHandler):
             return False;
         name = tornado.escape.xhtml_escape(self.current_user)
         db = dbhandler.DBHandler()
-        #staff = db.get_staff(sid)[0]
-        #sname = staff['name']
-        self.render("static/html/admin_home.html", name = name)
+        atype = self.get_secure_cookie("atype")
+        self.render("static/html/admin_home.html", name = name, atype = atype)
 
 class AddStaffPage(handler.AuthAdminBaseHandler):
     def get(self):
-        if not self.current_user:
+        if not self.current_user or int(self.get_secure_cookie("atype")) == 2:
             self.redirect("/login_admin")
             return False;
         name = tornado.escape.xhtml_escape(self.current_user)
@@ -76,7 +75,7 @@ class AddStaffPage(handler.AuthAdminBaseHandler):
 
 class StaffsPage(handler.AuthAdminBaseHandler):
     def get(self):
-        if not self.current_user:
+        if not self.current_user or int(self.get_secure_cookie("atype")) == 2:
             self.redirect("/login_admin")
             return False;
         name = tornado.escape.xhtml_escape(self.current_user)
@@ -84,7 +83,7 @@ class StaffsPage(handler.AuthAdminBaseHandler):
 
 class AdminsPage(handler.AuthAdminBaseHandler):
     def get(self):
-        if not self.current_user:
+        if not self.current_user or int(self.get_secure_cookie("atype")) != 0:
             self.redirect("/login_admin")
             return False;
         name = tornado.escape.xhtml_escape(self.current_user)
@@ -92,7 +91,7 @@ class AdminsPage(handler.AuthAdminBaseHandler):
 
 class ModifyStaffPage(handler.AuthAdminBaseHandler):
     def get(self):
-        if not self.current_user:
+        if not self.current_user or int(self.get_secure_cookie("atype")) == 2:
             self.redirect("/login_admin")
             return False;
         name = tornado.escape.xhtml_escape(self.current_user)
@@ -103,7 +102,7 @@ class ModifyStaffPage(handler.AuthAdminBaseHandler):
 
 class ModifyAdminPage(handler.AuthAdminBaseHandler):
     def get(self):
-        if not self.current_user:
+        if not self.current_user or int(self.get_secure_cookie("atype")) != 0:
             self.redirect("/login_admin")
             return False;
         name = tornado.escape.xhtml_escape(self.current_user)
@@ -114,7 +113,7 @@ class ModifyAdminPage(handler.AuthAdminBaseHandler):
 
 class ConfigPage(handler.AuthAdminBaseHandler):
     def get(self):
-        if not self.current_user:
+        if not self.current_user or int(self.get_secure_cookie("atype")) == 1:
             self.redirect("/login_admin")
             return False;
         name = tornado.escape.xhtml_escape(self.current_user)
@@ -126,7 +125,7 @@ class ConfigPage(handler.AuthAdminBaseHandler):
 
 class CheckRecordsPage(handler.AuthAdminBaseHandler):
     def get(self):
-        if not self.current_user:
+        if not self.current_user or int(self.get_secure_cookie("atype")) == 2:
             self.redirect("/login_admin")
             return False;
         aname = tornado.escape.xhtml_escape(self.current_user)
@@ -157,7 +156,7 @@ class CheckRecordsPage(handler.AuthAdminBaseHandler):
 
 class RecordSumPage(handler.AuthAdminBaseHandler): 
     def get(self):
-        if not self.current_user:
+        if not self.current_user or int(self.get_secure_cookie("atype")) == 2:
             self.redirect("/login_admin")
             return False;
         db = dbhandler.DBHandler()
